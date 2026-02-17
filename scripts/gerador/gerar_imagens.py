@@ -345,12 +345,8 @@ def draw_text_lift(
 # =========================
 
 def gerar_imagem_editada(imagem_path: Path, frase: str):
-    pasta_tmp = criar_pasta_tmp()
-
-    imagem_original_tmp = pasta_tmp / imagem_path.name
-    shutil.copy(imagem_path, imagem_original_tmp)
-
-    imagem = Image.open(imagem_original_tmp).convert("RGBA")
+    # Processa a imagem em memória primeiro (sem criar pasta tmp)
+    imagem = Image.open(imagem_path).convert("RGBA")
     draw = ImageDraw.Draw(imagem)
 
     largura_img, _ = imagem.size
@@ -386,10 +382,20 @@ def gerar_imagem_editada(imagem_path: Path, frase: str):
         spacing=10
     )
 
+    # Se chegou aqui, a edição foi bem sucedida - agora cria a pasta tmp
+    pasta_tmp = criar_pasta_tmp()
+
+    # Salva a imagem editada
     imagem.save(pasta_tmp / "imagem_editada.png")
 
-    with open(pasta_tmp / "frase.txt", "w", encoding="utf-8") as f:
-        f.write(frase)
+    # Move a imagem original para a pasta tmp (renomeando para imagem_original.[ext])
+    extensao = imagem_path.suffix
+    imagem_original_destino = pasta_tmp / f"imagem_original{extensao}"
+    shutil.move(str(imagem_path), str(imagem_original_destino))
+
+    # Salva a frase como JSON
+    with open(pasta_tmp / "frase.json", "w", encoding="utf-8") as f:
+        json.dump({"frase": frase}, f, ensure_ascii=False, indent=2)
 
     return pasta_tmp
 

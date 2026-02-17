@@ -27,8 +27,6 @@ publisher.log
 
 # Arquivos de estado e controle
 state/
-conteudo/usados_imagens.json
-conteudo/usados_frases.json
 conteudo/frases.json
 conteudo/frases_usadas.json
 

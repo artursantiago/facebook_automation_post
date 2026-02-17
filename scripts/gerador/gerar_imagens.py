@@ -15,9 +15,6 @@ IMAGENS_DIR = BASE_DIR / "imagens"
 TMP_DIR = BASE_DIR / "tmp"
 FRASES_PATH = BASE_DIR / "frases.json"
 
-USADOS_IMAGENS_PATH = BASE_DIR / "usados_imagens.json"
-USADOS_FRASES_PATH = BASE_DIR / "usados_frases.json"
-
 # =========================
 # CONFIGURAÇÕES DE TEXTO
 # =========================
@@ -31,34 +28,19 @@ FONTE_PATH = "/System/Library/Fonts/Supplemental/Comic Sans MS.ttf"
 # FUNÇÕES DE CONTROLE
 # =========================
 
-def carregar_json_lista(path: Path):
-    if not path.exists():
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def salvar_json_lista(path: Path, dados):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(dados, f, ensure_ascii=False, indent=2)
-
-
 def listar_imagens_disponiveis():
-    imagens_usadas = set(carregar_json_lista(USADOS_IMAGENS_PATH))
-
     return [
         img for img in sorted(IMAGENS_DIR.iterdir())
         if img.is_file()
         and img.suffix.lower() in (".jpg", ".jpeg", ".png")
-        and img.name not in imagens_usadas
     ]
 
 
 def listar_frases_disponiveis():
-    frases = carregar_json_lista(FRASES_PATH)
-    frases_usadas = set(carregar_json_lista(USADOS_FRASES_PATH))
-
-    return [f for f in frases if f not in frases_usadas]
+    if not FRASES_PATH.exists():
+        return []
+    with open(FRASES_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def criar_pasta_tmp():
@@ -222,21 +204,11 @@ def processar_lote():
         print("Nenhuma frase disponível.")
         return
 
-    usados_imagens = carregar_json_lista(USADOS_IMAGENS_PATH)
-    usados_frases = carregar_json_lista(USADOS_FRASES_PATH)
-
     total_processado = 0
 
     for imagem, frase in zip(imagens, frases):
         try:
             pasta = gerar_imagem_editada(imagem, frase)
-
-            usados_imagens.append(imagem.name)
-            usados_frases.append(frase)
-
-            salvar_json_lista(USADOS_IMAGENS_PATH, usados_imagens)
-            salvar_json_lista(USADOS_FRASES_PATH, usados_frases)
-
             print(f"✔ Gerado com sucesso: {pasta}")
             total_processado += 1
 

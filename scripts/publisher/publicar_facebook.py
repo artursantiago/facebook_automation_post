@@ -13,8 +13,9 @@ INTERVALO_HORAS = 0
 HORA_INICIO = 8
 HORA_FIM = 23
 # RANDOM_MINUTOS = 5
-RANDOM_MINUTOS = 0  # 
+RANDOM_MINUTOS = 0
 DRY_RUN = True  # ⚠️ MUDE PARA False QUANDO VALIDAR TUDO
+SKIP_POSTING = False  # ⚠️ Se True, ignora todo o fluxo de publicação
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 TMP_DIR = os.path.join(BASE_DIR, "conteudo/tmp")
@@ -24,6 +25,8 @@ IMAGENS_PUBLICADAS_DIR = os.path.join(IMAGENS_DIR, "publicadas")
 STATE_FILE = os.path.join(BASE_DIR, "state/facebook_posting.json")
 FRASES_FILE = os.path.join(BASE_DIR, "conteudo/frases.json")
 FRASES_USADAS_FILE = os.path.join(BASE_DIR, "conteudo/frases_usadas.json")
+LOG_FILE = os.path.join(BASE_DIR, "publisher.log")
+LOG_RETENTION_DAYS = 2
 
 # =====================
 # UTILIDADES
@@ -62,6 +65,19 @@ def salvar_estado(estado):
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(estado, f, indent=2, ensure_ascii=False)
 
+def limpar_log_antigo():
+    if not os.path.exists(LOG_FILE):
+        return
+    try:
+        mtime = os.path.getmtime(LOG_FILE)
+        idade = datetime.now() - datetime.fromtimestamp(mtime)
+        if idade.days >= LOG_RETENTION_DAYS:
+            open(LOG_FILE, "w").close()
+            log("🧹 Log limpo (mais de 2 dias)")
+    except Exception:
+        pass
+
+
 def horario_valido(estado):
     agora = datetime.now()
 
@@ -95,6 +111,12 @@ def publicar_facebook(imagem_path, legenda):
 # WORKFLOW PRINCIPAL
 # =====================
 def main():
+    limpar_log_antigo()
+
+    if SKIP_POSTING:
+        log("⚠️ SKIP_POSTING está habilitado - nenhuma ação será executada")
+        return
+
     estado = carregar_estado()
 
     # Reset diário

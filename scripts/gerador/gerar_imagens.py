@@ -147,8 +147,10 @@ def gerar_imagem_editada(imagem_path: Path, frase: str):
     largura_img, altura_img = imagem.size
     largura_max_texto = largura_img * LARGURA_MAX_TEXTO_PERCENT
 
-    # Tamanho da fonte proporcional à largura da imagem
-    fonte_tamanho = int(largura_img * FONTE_TAMANHO_PERCENT)
+    # Tamanho da fonte proporcional à menor dimensão da imagem
+    # Isso garante proporção consistente em imagens verticais e horizontais
+    menor_dimensao = min(largura_img, altura_img)
+    fonte_tamanho = int(menor_dimensao * FONTE_TAMANHO_PERCENT)
     fonte = ImageFont.truetype(FONTE_PATH, fonte_tamanho)
 
     texto_formatado = quebrar_texto_para_largura(

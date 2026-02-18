@@ -1,9 +1,17 @@
+import requests
 import os
 import json
 import time
 import random
 import shutil
 from datetime import datetime, timedelta
+
+# =====================
+# FACEBOOK API
+# =====================
+FACEBOOK_API_VERSION = "v24.0"
+FACEBOOK_CREDENTIALS_FILE = os.path.join(BASE_DIR, "facebook_credentials.json")
+
 
 # =====================
 # CONFIGURAÇÕES
@@ -95,18 +103,87 @@ def horario_valido(estado):
     return True
 
 # =====================
-# FACEBOOK (PLACEHOLDER)
+# FACEBOOK (GRAPH API)
 # =====================
+def carregar_credenciais_facebook():
+    """
+    Carrega Page ID e Page Access Token
+    """
+    if not os.path.exists(FACEBOOK_CREDENTIALS_FILE):
+        raise FileNotFoundError("Arquivo facebook_credentials.json não encontrado")
+
+    with open(FACEBOOK_CREDENTIALS_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    return data["page_id"], data["page_access_token"]   
+
 def publicar_facebook(imagem_path, legenda):
+    """
+    Publica uma imagem com legenda na Página do Facebook usando Graph API
+    """
+
+    log("📤 Iniciando publicação no Facebook")
+
     if DRY_RUN:
         log("[DRY-RUN] Publicação simulada no Facebook")
         log(f"[DRY-RUN] Imagem: {imagem_path}")
         log(f"[DRY-RUN] Legenda: {legenda}")
         return True
 
-    # ⚠️ AQUI entra a chamada real ao Facebook Graph API
-    # retorno True SOMENTE se a API confirmar sucesso
-    return False
+    try:
+        # =====================
+        # 1️⃣ Carrega credenciais
+        # =====================
+        page_id, access_token = carregar_credenciais_facebook()
+        log("🔑 Credenciais do Facebook carregadas")
+
+        # =====================
+        # 2️⃣ Monta endpoint
+        # =====================
+        url = f"https://graph.facebook.com/{FACEBOOK_API_VERSION}/{page_id}/photos"
+        log(f"🌐 Endpoint: {url}")
+
+        # =====================
+        # 3️⃣ Prepara payload
+        # =====================
+        data = {
+            "caption": legenda,
+            "access_token": access_token
+        }
+
+        files = {
+            "source": open(imagem_path, "rb")
+        }
+
+        # =====================
+        # 4️⃣ Envia requisição
+        # =====================
+        response = requests.post(url, data=data, files=files)
+        files["source"].close()
+
+        # =====================
+        # 5️⃣ Analisa resposta
+        # =====================
+        if response.status_code != 200:
+            log("❌ Erro HTTP ao publicar no Facebook")
+            log(f"Status: {response.status_code}")
+            log(f"Resposta: {response.text}")
+            return False
+
+        resposta = response.json()
+
+        if "id" not in resposta:
+            log("❌ Facebook não retornou ID da publicação")
+            log(str(resposta))
+            return False
+
+        log(f"✅ Publicado com sucesso no Facebook | Post ID: {resposta['id']}")
+        return True
+
+    except Exception as e:
+        log(f"❌ Exceção ao publicar no Facebook: {e}")
+        return False
+
 
 # =====================
 # WORKFLOW PRINCIPAL

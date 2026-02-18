@@ -20,8 +20,10 @@ FRASES_PATH = BASE_DIR / "frases.json"
 # =========================
 
 TEXTO_Y = 200
-FONTE_TAMANHO_PERCENT = 0.08  # 8% da largura da imagem
+FONTE_TAMANHO_PERCENT = 0.08  # 8% da menor dimensão da imagem
+FONTE_TAMANHO_MIN = 0.05  # Tamanho mínimo para frases longas
 LARGURA_MAX_TEXTO_PERCENT = 0.9
+ALTURA_MAX_TEXTO_PERCENT = 0.35  # Texto não pode ocupar mais que 35% da altura
 FONTE_PATH = "/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf"
 
 # =========================
@@ -146,24 +148,47 @@ def gerar_imagem_editada(imagem_path: Path, frase: str):
 
     largura_img, altura_img = imagem.size
     largura_max_texto = largura_img * LARGURA_MAX_TEXTO_PERCENT
+    altura_max_texto = altura_img * ALTURA_MAX_TEXTO_PERCENT
 
     # Tamanho da fonte proporcional à menor dimensão da imagem
-    # Isso garante proporção consistente em imagens verticais e horizontais
     menor_dimensao = min(largura_img, altura_img)
     fonte_tamanho = int(menor_dimensao * FONTE_TAMANHO_PERCENT)
-    fonte = ImageFont.truetype(FONTE_PATH, fonte_tamanho)
+    fonte_tamanho_min = int(menor_dimensao * FONTE_TAMANHO_MIN)
 
-    texto_formatado = quebrar_texto_para_largura(
-        draw, frase, fonte, largura_max_texto
-    )
+    # Ajusta o tamanho da fonte se o texto for muito grande
+    while fonte_tamanho >= fonte_tamanho_min:
+        fonte = ImageFont.truetype(FONTE_PATH, fonte_tamanho)
+        texto_formatado = quebrar_texto_para_largura(
+            draw, frase, fonte, largura_max_texto
+        )
+        bbox = draw.multiline_textbbox(
+            (0, 0),
+            texto_formatado,
+            font=fonte,
+            align="center",
+            spacing=10
+        )
+        altura_texto = bbox[3] - bbox[1]
 
-    bbox = draw.multiline_textbbox(
-        (0, 0),
-        texto_formatado,
-        font=fonte,
-        align="center",
-        spacing=10
-    )
+        if altura_texto <= altura_max_texto:
+            break
+
+        fonte_tamanho -= 2
+
+    # Caso tenha saído do loop sem encontrar tamanho ideal, usa o mínimo
+    if fonte_tamanho < fonte_tamanho_min:
+        fonte_tamanho = fonte_tamanho_min
+        fonte = ImageFont.truetype(FONTE_PATH, fonte_tamanho)
+        texto_formatado = quebrar_texto_para_largura(
+            draw, frase, fonte, largura_max_texto
+        )
+        bbox = draw.multiline_textbbox(
+            (0, 0),
+            texto_formatado,
+            font=fonte,
+            align="center",
+            spacing=10
+        )
 
     largura_texto = bbox[2] - bbox[0]
     pos_x = (largura_img - largura_texto) / 2

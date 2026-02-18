@@ -19,7 +19,7 @@ FRASES_PATH = BASE_DIR / "frases.json"
 # CONFIGURAÇÕES DE TEXTO
 # =========================
 
-TEXTO_Y = 350
+TEXTO_Y = 200
 FONTE_TAMANHO = 60
 LARGURA_MAX_TEXTO_PERCENT = 0.9
 FONTE_PATH = "/System/Library/Fonts/Supplemental/Comic Sans MS.ttf"
@@ -93,7 +93,7 @@ def draw_text_lift(
     text,
     font,
     fill=(255, 255, 255, 255),
-    shadow_color=(0, 0, 0, 160),
+    shadow_color=(0, 0, 0, 220),
     offset=(0, 6),
     blur_radius=10,
     align="center",
@@ -165,7 +165,7 @@ def gerar_imagem_editada(imagem_path: Path, frase: str):
         texto_formatado,
         font=fonte,
         fill=(255, 255, 255, 255),
-        shadow_color=(0, 0, 0, 160),
+        shadow_color=(0, 0, 0, 220),
         offset=(0, 6),
         blur_radius=10,
         align="center",

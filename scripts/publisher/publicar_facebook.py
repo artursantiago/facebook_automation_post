@@ -87,7 +87,8 @@ def horario_valido(estado):
     if estado["ultimo_post"]:
         ultimo = datetime.fromisoformat(estado["ultimo_post"])
         intervalo = timedelta(hours=INTERVALO_HORAS)
-        random_delay = timedelta(minutes=random.randint(0, RANDOM_MINUTOS))
+        random_segundos = random.randint(0, RANDOM_MINUTOS * 60)
+        random_delay = timedelta(seconds=random_segundos)
         if agora < ultimo + intervalo + random_delay:
             return False
 

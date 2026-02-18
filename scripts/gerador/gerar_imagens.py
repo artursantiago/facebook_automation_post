@@ -20,7 +20,7 @@ FRASES_PATH = BASE_DIR / "frases.json"
 # =========================
 
 TEXTO_Y = 200
-FONTE_TAMANHO = 60
+FONTE_TAMANHO_PERCENT = 0.08  # 8% da largura da imagem
 LARGURA_MAX_TEXTO_PERCENT = 0.9
 FONTE_PATH = "/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf"
 
@@ -139,10 +139,12 @@ def gerar_imagem_editada(imagem_path: Path, frase: str):
     imagem = Image.open(imagem_path).convert("RGBA")
     draw = ImageDraw.Draw(imagem)
 
-    largura_img, _ = imagem.size
+    largura_img, altura_img = imagem.size
     largura_max_texto = largura_img * LARGURA_MAX_TEXTO_PERCENT
 
-    fonte = ImageFont.truetype(FONTE_PATH, FONTE_TAMANHO)
+    # Tamanho da fonte proporcional à largura da imagem
+    fonte_tamanho = int(largura_img * FONTE_TAMANHO_PERCENT)
+    fonte = ImageFont.truetype(FONTE_PATH, fonte_tamanho)
 
     texto_formatado = quebrar_texto_para_largura(
         draw, frase, fonte, largura_max_texto

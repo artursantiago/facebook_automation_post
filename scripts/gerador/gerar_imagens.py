@@ -28,11 +28,16 @@ FONTE_PATH = "/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf"
 # FUNÇÕES DE CONTROLE
 # =========================
 
+EXTENSOES_IMAGEM = (
+    ".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp",
+    ".tiff", ".tif", ".ico", ".heic", ".heif", ".avif"
+)
+
 def listar_imagens_disponiveis():
     return [
         img for img in sorted(IMAGENS_DIR.iterdir())
         if img.is_file()
-        and img.suffix.lower() in (".jpg", ".jpeg", ".png")
+        and img.suffix.lower() in EXTENSOES_IMAGEM
         and img.name != ".gitkeep"
     ]
 

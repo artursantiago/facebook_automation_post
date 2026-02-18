@@ -26,14 +26,23 @@ publisher.log
 ._*
 
 # Arquivos de estado e controle
-state/
+state/*
+!state/.gitkeep
 conteudo/frases.json
 conteudo/frases_usadas.json
 
 # Conteúdo temporário e publicado
-conteudo/tmp/
-conteudo/imagens/
-conteudo/publicados/
+conteudo/tmp/*
+!conteudo/tmp/.gitkeep
+
+conteudo/imagens/*
+!conteudo/imagens/.gitkeep
+!conteudo/imagens/publicadas/
+conteudo/imagens/publicadas/*
+!conteudo/imagens/publicadas/.gitkeep
+
+conteudo/publicados/*
+!conteudo/publicados/.gitkeep
 
 # Imagens originais (descomente se não quiser versioná-las)
 # conteudo/imagens/

@@ -231,7 +231,10 @@ def main():
         log("⏳ Fora do horário válido")
         return
 
-    pacotes = sorted(os.listdir(TMP_DIR))
+    pacotes = sorted([
+        p for p in os.listdir(TMP_DIR)
+        if os.path.isdir(os.path.join(TMP_DIR, p))
+    ])
     if not pacotes:
         log("📂 Nenhuma imagem em tmp/")
         estado["ultimo_post"] = datetime.now().isoformat()

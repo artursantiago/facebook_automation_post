@@ -33,6 +33,7 @@ def listar_imagens_disponiveis():
         img for img in sorted(IMAGENS_DIR.iterdir())
         if img.is_file()
         and img.suffix.lower() in (".jpg", ".jpeg", ".png")
+        and img.name != ".gitkeep"
     ]
 
 

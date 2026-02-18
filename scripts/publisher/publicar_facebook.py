@@ -7,13 +7,6 @@ import shutil
 from datetime import datetime, timedelta
 
 # =====================
-# FACEBOOK API
-# =====================
-FACEBOOK_API_VERSION = "v24.0"
-FACEBOOK_CREDENTIALS_FILE = os.path.join(BASE_DIR, "facebook_credentials.json")
-
-
-# =====================
 # CONFIGURAÇÕES
 # =====================
 # INTERVALO_HORAS = 3
@@ -37,6 +30,12 @@ LOG_FILE = os.path.join(BASE_DIR, "publisher.log")
 LOG_RETENTION_DAYS = 2
 
 # =====================
+# FACEBOOK API
+# =====================
+FACEBOOK_API_VERSION = "v24.0"
+FACEBOOK_CREDENTIALS_FILE = os.path.join(BASE_DIR, "facebook_credentials.json")
+
+# =====================
 # UTILIDADES
 # =====================
 def log(msg):
@@ -44,28 +43,54 @@ def log(msg):
 
 
 def carregar_estado():
-    # Se o arquivo não existe, retorna estado inicial
+    """
+    Carrega o estado de publicação.
+
+    Regras:
+    - Se o arquivo NÃO existir → considera que nunca houve post
+    - Se o arquivo estiver vazio → considera que nunca houve post
+    - Se o arquivo for {} → considera que nunca houve post
+    - Se faltar qualquer chave → normaliza automaticamente
+    """
+
+    estado_padrao = {
+        "ultimo_post": None,
+        "data": datetime.now().strftime("%Y-%m-%d")
+    }
+
+    # 1️⃣ Arquivo não existe
     if not os.path.exists(STATE_FILE):
-        return {
-            "ultimo_post": None,
-            "data": datetime.now().strftime("%Y-%m-%d")
-        }
-    # Se o arquivo existe mas está vazio ou corrompido
+        log("ℹ️ Estado inexistente — considerando primeiro post")
+        return estado_padrao
+
     try:
         with open(STATE_FILE, "r", encoding="utf-8") as f:
             conteudo = f.read().strip()
-            if not conteudo:  # vazio
-                return {
-                    "ultimo_post": None,
-                    "data": datetime.now().strftime("%Y-%m-%d")
-                }
-            return json.loads(conteudo)
+
+            # 2️⃣ Arquivo vazio
+            if not conteudo:
+                log("ℹ️ Estado vazio — considerando primeiro post")
+                return estado_padrao
+
+            estado = json.loads(conteudo)
+
+            # 3️⃣ Arquivo contém apenas {}
+            if not estado:
+                log("ℹ️ Estado {} — considerando primeiro post")
+                return estado_padrao
+
+            # 4️⃣ Normalização defensiva
+            if "ultimo_post" not in estado:
+                estado["ultimo_post"] = None
+
+            if "data" not in estado:
+                estado["data"] = datetime.now().strftime("%Y-%m-%d")
+
+            return estado
+
     except json.JSONDecodeError:
-        # caso corrompido
-        return {
-            "ultimo_post": None,
-            "data": datetime.now().strftime("%Y-%m-%d")
-        }
+        log("⚠️ Estado corrompido — resetando estado")
+        return estado_padrao
 
 
 def salvar_estado(estado):

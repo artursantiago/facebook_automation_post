@@ -22,7 +22,7 @@ FRASES_PATH = BASE_DIR / "frases.json"
 TEXTO_Y = 200
 FONTE_TAMANHO = 60
 LARGURA_MAX_TEXTO_PERCENT = 0.9
-FONTE_PATH = "/System/Library/Fonts/Supplemental/Comic Sans MS.ttf"
+FONTE_PATH = "/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf"
 
 # =========================
 # FUNÇÕES DE CONTROLE
